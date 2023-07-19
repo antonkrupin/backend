@@ -13,7 +13,7 @@ const getData = async (req, res, next) => {
   } catch (err) {
     console.log(err);
   }
-  res.json({dataSets});
+  res.json({dataSets: dataSets.map(dataSet => dataSet.toObject({ getters: true }))});
 }
 
 const getDataById = async (req, res, next) => {
