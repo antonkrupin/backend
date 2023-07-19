@@ -4,48 +4,87 @@ let DYMMY_DATA = [
 	{name: 'Entity3', coordinates: [4, -1], labels: ['labelD', 'labelC'], id: '3'},
 ];
 
-const getData = (req, res, next) => {
-  res.json(DYMMY_DATA);
+const Dataset = require('../models/dataset');
+
+const getData = async (req, res, next) => {
+  let dataSets;
+  try {
+    dataSets = await Dataset.find();
+  } catch (err) {
+    console.log(err);
+  }
+  res.json({dataSets});
 }
 
-const getDataById = (req, res, next) => {
+const getDataById = async (req, res, next) => {
   const dataId = req.params.dataId;
-  const data = DYMMY_DATA.filter(d => d.id === dataId);
-  res.json({data});
+  let data;
+  try {
+    data = await Dataset.findById(dataId);
+  } catch (err) {
+    console.log(err);
+  }
+  //add return error;
+  res.json({data: data.toObject( {getters: true} )});
 };
 
-const addDataSet = (req, res, next) => {
+const addDataSet = async (req, res, next) => {
   const { name, coordinates, labels, id } = req.body;
-  const createdData = {
+  const createdDataSet = new Dataset({
     name,
     coordinates,
-    labels,
-    id
-  };
+    labels
+  })
 
-  DYMMY_DATA.push(createdData);
-  res.json(createdData);
+  try {
+    await createdDataSet.save();
+  } catch (err) {
+    console.log(err);
+  }
+  //add return error;
+  res.json(createdDataSet);
 }
 
-const updateDataById = (req, res, next) => {
+const updateDataById = async (req, res, next) => {
   const dataId = req.params.dataId;
   const { name, coordinates, labels } = req.body;
 
-  const data = { ...DYMMY_DATA.find(d => d.id === dataId) };
-  const dataIndex = DYMMY_DATA.findIndex(d => d.id === dataId);
+  let dataSet;
+  try {
+    dataSet = await Dataset.findById(dataId);
+  } catch (err) {
+    console.log(err);
+  }
 
-  data.name = name;
-  data.coordinates = coordinates;
-  data.labels = labels;
+  dataSet.name = name;
+  dataSet.coordinates = coordinates;
+  dataSet.labels = labels;
 
-  DYMMY_DATA[dataIndex] = data;
-  res.json(data);
+  try {
+    await dataSet.save();
+  } catch (err) {
+    console.log(err);
+  }
+
+  res.json({dataSet: dataSet.toObject({ getters: true })});
 };
 
-const deleteDataById = (req, res, next) => {
+const deleteDataById = async (req, res, next) => {
   const dataId = req.params.dataId;
-  DYMMY_DATA = DYMMY_DATA.filter(data => data.id !== dataId);
-  res.json('good');
+  let dataSet;
+  try {
+    dataSet = await Dataset.findById(dataId);
+  } catch (err) {
+    console.log(err);
+  }
+
+  try {
+    await dataSet.deleteOne();
+  } catch (err) {
+    console.log(err);
+  }
+
+  res.json('dataSet deleted');
 }
 
 exports.getData = getData;
